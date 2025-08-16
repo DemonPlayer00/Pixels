@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传艺术作品</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .file-upload:hover {
+            border-color: #aaa;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        button[type="submit"]:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            color: green;
+            margin-bottom: 15px;
+        }
+
+        /* 新增标签样式 */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .tag-item {
+            background-color: #e0e0e0;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .tag-remove {
+            margin-left: 5px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        #tagsInput {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>上传艺术作品</h1>
+
+    <div id="message" class="error" style="display: none;"></div>
+
+    <form id="uploadForm">
+        <!-- 图片上传 -->
+        <div class="form-group">
+            <label for="images">作品图片 (最多32张)</label>
+            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                <p>点击或拖拽文件到此处上传</p>
+                <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFileSelect(event)">
+            </div>
+            <div id="previewContainer" class="preview-container"></div>
+        </div>
+
+        <!-- 标题 -->
+        <div class="form-group">
+            <label for="title">作品标题</label>
+            <input type="text" id="title" name="title" placeholder="请输入作品标题" maxlength="255">
+        </div>
+
+        <!-- 描述 -->
+        <div class="form-group">
+            <label for="description">作品描述</label>
+            <textarea id="description" name="description" placeholder="请输入作品描述"></textarea>
+        </div>
+
+        <!-- 标签 -->
+        <div class="form-group">
+            <label for="tagsInput">标签 (输入后按回车添加)</label>
+            <input type="text" id="tagsInput" placeholder="输入标签后按回车">
+            <div id="tagsContainer" class="tags-container"></div>
+            <input type="hidden" id="tags" name="tags">
+        </div>
+
+        <!-- 执行用户ID (管理员可见) -->
+        <div class="form-group" id="executeUserContainer" style="display: none;">
+            <label for="execute_user_id">执行用户ID (管理员专用)</label>
+            <input type="text" id="execute_user_id" name="execute_user_id" placeholder="输入虚拟用户ID">
+        </div>
+
+        <button type="submit" id="submitBtn">上传作品</button>
+    </form>
+
+    <script>
+        // 全局变量
+        let selectedFiles = [];
+        let tags = [];
+
+        // DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function () {
+            // 检查用户权限，显示管理员字段
+            const user = getUserInfo(); // 假设从cookie或localStorage获取用户信息
+            if (user && (user.id === 1 || (user.permissions && user.permissions.includes('SuperManager')))) {
+                document.getElementById('executeUserContainer').style.display = 'block';
+            }
+
+            // 表单提交事件
+            document.getElementById('uploadForm').addEventListener('submit', handleFormSubmit);
+
+            // 拖放功能
+            const dropArea = document.querySelector('.file-upload');
+            dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = '#aaa';
+            });
+
+            dropArea.addEventListener('dragleave', () => {
+                dropArea.style.borderColor = '#ddd';
+            });
+
+            dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = '#ddd';
+                handleFileSelect({ target: { files: e.dataTransfer.files } });
+            });
+
+            // 标签输入框回车事件
+            document.getElementById('tagsInput').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag(this.value.trim());
+                    this.value = '';
+                }
+            });
+        });
+
+        // 添加标签
+        function addTag(tagText) {
+            if (!tagText) return;
+
+            // 检查是否已存在
+            if (tags.includes(tagText)) {
+                showMessage('标签已存在', 'error');
+                return;
+            }
+
+            tags.push(tagText);
+            updateTagsDisplay();
+        }
+
+        // 移除标签
+        function removeTag(index) {
+            tags.splice(index, 1);
+            updateTagsDisplay();
+        }
+
+        // 更新标签显示
+        function updateTagsDisplay() {
+            const container = document.getElementById('tagsContainer');
+            container.innerHTML = '';
+
+            tags.forEach((tag, index) => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'tag-item';
+                tagElement.innerHTML = `
+                    ${tag}
+                    <span class="tag-remove" onclick="removeTag(${index})">×</span>
+                `;
+                container.appendChild(tagElement);
+            });
+
+            // 更新隐藏的输入字段
+            document.getElementById('tags').value = tags.join(',');
+        }
+
+        // 处理文件选择
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            // 检查文件数量
+            if (selectedFiles.length + files.length > 32) {
+                showMessage('最多只能上传32张图片', 'error');
+                return;
+            }
+
+            // 添加到已选文件
+            for (let i = 0; i < files.length; i++) {
+                selectedFiles.push(files[i]);
+            }
+
+            // 更新预览
+            updatePreview();
+        }
+
+        // 更新图片预览
+        function updatePreview() {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-image';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.innerHTML = '×';
+                    removeBtn.onclick = (e) => {
+                        e.preventDefault();
+                        removeImage(index);
+                    };
+
+                    previewItem.appendChild(img);
+                    previewItem.appendChild(removeBtn);
+                    previewContainer.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 移除图片
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            updatePreview();
+        }
+
+        // 处理表单提交
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            // 验证输入
+            if (selectedFiles.length === 0) {
+                showMessage('请至少上传一张图片', 'error');
+                return;
+            }
+
+            const title = document.getElementById('title').value.trim() || 'Untitled';
+            const description = document.getElementById('description').value.trim();
+
+            // 准备表单数据
+            const formData = new FormData();
+
+            // 添加图片
+            selectedFiles.forEach(file => {
+                formData.append('images', file);
+            });
+
+            // 添加其他字段
+            formData.append('title', title);
+            formData.append('description', description);
+
+            // 将tags数组转为JSON字符串
+            formData.append('tags', JSON.stringify(tags));
+
+            // 如果是管理员，添加执行用户ID
+            const executeUserId = document.getElementById('execute_user_id').value;
+            if (document.getElementById('executeUserContainer').style.display === 'block' && executeUserId) {
+                formData.append('execute_user_id', executeUserId);
+            }
+
+            // 禁用提交按钮
+            document.getElementById('submitBtn').disabled = true;
+            showMessage('上传中，请稍候...', 'success');
+
+            try {
+                // 发送请求
+                const response = await fetch('/api/artworks/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || '上传失败');
+                }
+
+                // 上传成功
+                showMessage('作品上传成功！', 'success');
+
+            } catch (error) {
+                console.error('上传失败:', error);
+                showMessage(error.message || '上传失败，请稍后重试', 'error');
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+        }
+
+        // 获取用户信息 (模拟)
+        function getUserInfo() {
+            // 实际应用中从cookie或localStorage获取
+            return {
+                id: 1,
+                permissions: ['SuperManager'],
+                virtual_user_id: '123'
+            };
+        }
+
+        // 获取认证token (模拟)
+        function getAuthToken() {
+            // 实际应用中从cookie或localStorage获取
+            return 'your-auth-token';
+        }
+    </script>
+</body>
+
+</html>

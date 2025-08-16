@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   sodipodi:docname="logout.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     inkscape:zoom="1.5839844"
+     inkscape:cx="256"
+     inkscape:cy="256"
+     inkscape:window-width="1920"
+     inkscape:window-height="1014"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="图层 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#666666;fill-rule:evenodd;stroke-width:17.7211"
+       id="rect1"
+       width="300"
+       height="50"
+       x="50"
+       y="50"
+       ry="25" />
+    <rect
+       style="fill:#666666;fill-rule:evenodd;stroke-width:20.7673"
+       id="rect1-3"
+       width="412"
+       height="50"
+       x="50"
+       y="-100"
+       ry="25"
+       transform="rotate(90)" />
+    <rect
+       style="fill:#666666;fill-rule:evenodd;stroke-width:17.7211"
+       id="rect1-1"
+       width="300"
+       height="50"
+       x="50"
+       y="412"
+       ry="25" />
+    <rect
+       style="fill:#666666;fill-rule:evenodd;stroke-width:17.7211"
+       id="rect1-36"
+       width="300"
+       height="50"
+       x="162"
+       y="231"
+       ry="25" />
+    <rect
+       style="fill:#666666;fill-rule:evenodd;stroke-width:12.145"
+       id="rect1-18"
+       width="140.90752"
+       height="50"
+       x="373.84039"
+       y="-152.27921"
+       ry="25"
+       transform="rotate(45)" />
+    <rect
+       style="fill:#666666;fill-rule:evenodd;stroke-width:12.145"
+       id="rect1-18-2"
+       width="140.90752"
+       height="50"
+       x="-152.19913"
+       y="-514.828"
+       ry="25"
+       transform="rotate(135)" />
+  </g>
+</svg>

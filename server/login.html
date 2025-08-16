@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Pixels Login</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/src/css/framework.css">
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+			background-color: #000;
+		}
+
+		canvas {
+			display: block;
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: -1;
+		}
+
+		/* 登录表单样式 */
+		.login-wrapper {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+			background-color: #ffffff66;
+		}
+
+		.login-form {
+			background: rgba(255, 255, 255, 0.9);
+			padding: 30px;
+			border-radius: 8px;
+			width: 100%;
+			max-width: 400px;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+		}
+
+		.form-title {
+			font-family: 'Courneuf-Regular';
+			text-align: center;
+			font-size: 2em;
+			margin-bottom: 30px;
+			color: #333;
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		.form-label {
+			display: block;
+			margin-bottom: 5px;
+			font-weight: bold;
+			font-size: medium;
+		}
+
+		.form-input {
+			width: 100%;
+			padding: 10px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			box-sizing: border-box;
+		}
+
+		.login-btn {
+			width: 100%;
+			padding: 12px;
+			background: black;
+			color: white;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 1em;
+			transition: background 0.3s;
+		}
+
+		.login-btn:hover {
+			background: #333;
+		}
+
+		/* 手机端适配 */
+		@media (max-width: 480px) {
+			.login-form {
+				padding: 20px;
+				margin: 0 15px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<!-- 登录表单 -->
+	<div class="login-wrapper">
+		<form class="login-form" method="post" action="/api/real_users/login">
+			<h1 class="form-title">Pixels登录</h1>
+
+			<div class="form-group">
+				<select class="form-label" id="login_type" name="login_type" autocomplete="off">
+					<option value="phone">电话</option>
+					<option value="id">ID</option>
+				</select>
+				<input class="form-input" type="text" id="symbol" name="symbol" required autocomplete="off">
+			</div>
+
+			<div class="form-group">
+				<label class="form-label" for="password">密码</label>
+				<input class="form-input" type="password" id="password" name="password" required autocomplete="off">
+			</div>
+
+			<p id="error-message" style="text-align: center; margin-top: 20px; display: none; color: red;"></p>
+			<button class="login-btn" type="submit">登录</button>
+		</form>
+	</div>
+	<canvas id="antCanvas"></canvas>
+</body>
+
+<script>
+	document.querySelector('.login-form').addEventListener('submit', function (e) {
+		e.preventDefault(); // 阻止默认表单提交行为
+
+		const formData = new FormData(this);
+
+		fetch('/api/real_users/login', {
+			method: 'POST',
+			body: formData
+		})
+			.then(async response => {
+				if (response.ok) {
+					window.location.href = '/index.html';
+				} else {
+					response.json().then(result => {
+						document.querySelector('#error-message').textContent = result.error;
+						document.querySelector('#error-message').style.display = 'block';
+					});
+				}
+			})
+			.catch(error => {
+				console.error('Error:', error);
+				alert('请求失败');
+			});
+	});
+</script>
+
+<script>
+	// 初始化画布
+	const canvas = document.getElementById('antCanvas');
+	const ctx = canvas.getContext('2d');
+
+	// 兰顿蚂蚁参数
+	const cellSize = 16; // 每个格子的大小(像素)
+	let gridWidth, gridHeight;
+	let grid = [];
+	let ants = []; // 支持多只蚂蚁
+
+	// 颜色定义
+	const WHITE = 0;
+	const BLACK = 1;
+	const colors = ['#FFFFFF', '#000000']; // 白和黑
+
+	// 设置画布大小为窗口大小
+	function resizeCanvas() {
+		const oldGrid = grid.length > 0 ? grid : null;
+		const oldWidth = gridWidth;
+		const oldHeight = gridHeight;
+
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+		gridWidth = Math.ceil(canvas.width / cellSize);
+		gridHeight = Math.ceil(canvas.height / cellSize);
+
+		// 创建新网格，初始为白色
+		const newGrid = Array(gridHeight).fill().map(() => Array(gridWidth).fill(WHITE));
+
+		// 如果有旧网格，复制重叠部分的轨迹
+		if (oldGrid) {
+			const copyWidth = Math.min(oldWidth, gridWidth);
+			const copyHeight = Math.min(oldHeight, gridHeight);
+
+			for (let y = 0; y < copyHeight; y++) {
+				for (let x = 0; x < copyWidth; x++) {
+					newGrid[y][x] = oldGrid[y][x];
+				}
+			}
+		}
+
+		grid = newGrid;
+
+		// 调整蚂蚁位置，确保它们在新网格范围内
+		ants.forEach(ant => {
+			ant.x = Math.min(ant.x, gridWidth - 1);
+			ant.y = Math.min(ant.y, gridHeight - 1);
+		});
+
+		// 如果没有蚂蚁，添加一个随机位置的蚂蚁
+		if (ants.length === 0) {
+			addRandomAnt();
+		}
+	}
+
+	// 添加随机位置的蚂蚁
+	function addRandomAnt() {
+		ants.push({
+			x: Math.floor(Math.random() * gridWidth),
+			y: Math.floor(Math.random() * gridHeight),
+			dir: Math.floor(Math.random() * 4) // 随机初始方向
+		});
+	}
+
+	window.addEventListener('resize', resizeCanvas);
+
+	// 绘制网格
+	function drawGrid() {
+		// 绘制背景为白色
+		ctx.fillStyle = colors[WHITE];
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		// 绘制所有黑色格子
+		ctx.fillStyle = colors[BLACK];
+		for (let y = 0; y < gridHeight; y++) {
+			for (let x = 0; x < gridWidth; x++) {
+				if (grid[y][x] === BLACK) {
+					ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+				}
+			}
+		}
+
+		// 绘制蚂蚁 (红色)
+		ctx.fillStyle = '#FF0000';
+		ants.forEach(ant => {
+			ctx.fillRect(ant.x * cellSize, ant.y * cellSize, cellSize, cellSize);
+		});
+	}
+
+	// 蚂蚁移动一步
+	function moveAnt() {
+		ants.forEach(ant => {
+			// 获取当前格子颜色
+			const currentColor = grid[ant.y][ant.x];
+
+			// 根据格子颜色改变方向
+			if (currentColor === WHITE) {
+				// 白格子 - 右转
+				ant.dir = (ant.dir + 1) % 4;
+			} else {
+				// 黑格子 - 左转
+				ant.dir = (ant.dir + 3) % 4;
+			}
+
+			// 翻转格子颜色
+			grid[ant.y][ant.x] = 1 - currentColor;
+
+			// 移动蚂蚁
+			ant.x += directions[ant.dir].dx;
+			ant.y += directions[ant.dir].dy;
+
+			// 边界处理 (从另一边出来)
+			if (ant.x < 0) ant.x = gridWidth - 1;
+			if (ant.x >= gridWidth) ant.x = 0;
+			if (ant.y < 0) ant.y = gridHeight - 1;
+			if (ant.y >= gridHeight) ant.y = 0;
+		});
+	}
+
+	// 方向向量
+	const directions = [
+		{ dx: 0, dy: -1 }, // 上
+		{ dx: 1, dy: 0 },  // 右
+		{ dx: 0, dy: 1 },   // 下
+		{ dx: -1, dy: 0 }   // 左
+	];
+
+	// 动画循环
+	function animate() {
+		for (let i = 0; i < 10; i++) { // 每帧移动10次加快速度
+			moveAnt();
+		}
+		drawGrid();
+		requestAnimationFrame(animate);
+	}
+
+	// 初始化并开始动画
+	resizeCanvas(); // 使用修改后的resizeCanvas初始化
+	animate();
+
+	// 初始添加3只随机蚂蚁
+	for (let i = 0; i < 3; i++) {
+		addRandomAnt();
+	}
+</script>
+
+</html>

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Pixels</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/src/css/framework.css">
+	<link rel="stylesheet" href="/src/css/card.css">
+	<style>
+		/* 导航链接 */
+		.nav-links {
+			width: 75%;
+			display: flex;
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			align-items: center;
+		}
+
+		.nav-links li {
+			margin-left: 25px;
+		}
+
+		.nav-links a {
+			color: #e0e0e0;
+			text-decoration: none;
+			font-size: 1rem;
+			transition: color 0.3s;
+			padding: 5px 0;
+			position: relative;
+		}
+
+		.nav-links a:hover {
+			color: white;
+		}
+
+		.nav-links a::after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			width: 0;
+			height: 2px;
+			background-color: #4a90e2;
+			transition: width 0.3s;
+		}
+
+		.nav-links a:hover::after {
+			width: 100%;
+		}
+
+		/* 用户操作区域 */
+		.user-actions {
+			display: flex;
+			flex-direction: row;
+			flex: 1;
+			justify-content: flex-end;
+			align-items: center;
+		}
+
+		.user-actions:hover {
+			cursor: default;
+		}
+
+		.login_tabs {
+			display: none;
+			flex-direction: row;
+			align-items: center;
+			margin-left: 10px;
+			border-radius: 10px;
+			padding: 5px 10px;
+			transition: all 0.2s;
+			touch-action: manipulation;
+		}
+
+		.login_tabs:hover {
+			cursor: default;
+			background-color: #4b4b4b;
+		}
+
+		.login-btn,
+		.signup-btn {
+			padding: 8px 16px;
+			border-radius: 4px;
+			margin-left: 10px;
+			font-weight: 500;
+			cursor: pointer;
+			transition: all 0.3s;
+		}
+
+		.login-btn {
+			background-color: transparent;
+			color: white;
+			border: 1px solid #4a90e2;
+		}
+
+		.login-btn:hover {
+			background-color: rgba(74, 144, 226, 0.1);
+		}
+
+		.signup-btn {
+			/* background-color: #4a90e2; */
+			background-color: #c0c0c0;
+			color: white;
+			border: none;
+		}
+
+		/*.signup-btn:hover {
+			background-color: #3a7bc8;
+		}/*
+
+		/* 移动端菜单按钮 */
+		.menu-toggle {
+			display: none;
+			cursor: pointer;
+			flex-direction: column;
+			justify-content: space-between;
+			width: 24px;
+			height: 18px;
+		}
+
+		.menu-toggle span {
+			display: block;
+			width: 100%;
+			height: 2px;
+			background-color: white;
+			transition: all 0.3s;
+		}
+
+		.search-input {
+			flex: 1;
+			margin-left: 20px;
+			margin-right: 20px;
+			padding: 8px;
+			border-radius: 4px;
+			border: none;
+			max-width: 75%;
+			color: white;
+			background-color: #333;
+		}
+
+		.content-container {
+			position: relative;
+			width: 100%;
+			height: calc(100vh - 80px);
+			overflow: hidden;
+		}
+
+		.content-slider {
+			position: absolute;
+			display: flex;
+			width: 400%;
+			/* 4个展示区 */
+			height: 100%;
+			transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+		}
+
+		.content-panel {
+			width: 25%;
+			/* 每个展示区占1/4 */
+			height: 100%;
+			padding: 20px;
+			box-sizing: border-box;
+			overflow-y: auto;
+		}
+
+		.login_tabs_content {
+			position: fixed;
+			display: flex;
+			pointer-events: none;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 10px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+			border-radius: 10px;
+			transition: all 0.2s;
+			padding: 5px 10px;
+			background-color: white;
+			color: black;
+			transition: opacity 0.3s, transform 0.3s;
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+
+		.login_tabs_content.visible {
+			pointer-events: auto;
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		.login_tabs_content:hover {
+			cursor: pointer;
+		}
+
+		.login_tabs_content .line {
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			padding: 5px;
+			transition: all 0.2s;
+			border-radius: 5px;
+		}
+
+		.login_tabs_content .line img {
+			width: 20px;
+			height: 20px;
+			margin-right: 10px;
+		}
+
+		.login_tabs_content .line span {
+			color: black;
+			font-size: 14px;
+			font-weight: 500;
+		}
+
+		.login_tabs_content .line:hover {
+			background-color: #c0c0c0;
+		}
+
+		/* 响应式设计 */
+		@media (max-width: 768px) {
+			.nav-links {
+				position: absolute;
+				top: 60px;
+				left: 0;
+				width: 100%;
+				background-color: #1a1a1a;
+				flex-direction: column;
+				align-items: center;
+				padding: 20px 0;
+				clip-path: circle(0px at 90% -10%);
+				transition: clip-path 0.5s ease-in-out;
+				z-index: 5001;
+			}
+
+			.nav-links.active {
+				clip-path: circle(1000px at 90% -10%);
+			}
+
+			.nav-links li {
+				margin: 15px 0;
+			}
+
+			.menu-toggle {
+				display: flex;
+			}
+
+			.user-actions {
+				width: 100%;
+				flex: 1;
+				display: flex;
+				justify-content: right;
+				align-items: center;
+				margin-right: 20px;
+			}
+
+			.search-input {
+				flex: 0;
+				width: 100%;
+			}
+
+			.menu-mask {
+				display: none;
+				position: fixed;
+				top: 60px;
+				left: 0;
+				width: 100%;
+				height: calc(100vh - 60px);
+				/* background-color: rgba(0, 0, 0, 0.5); */
+				z-index: 5000;
+			}
+
+			.nav-links.active~.menu-mask {
+				display: block;
+			}
+
+			.content-container {
+				height: calc(100vh - 120px);
+			}
+
+			.content-panel {
+				padding: 15px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<!-- 顶栏 -->
+	<nav class="navbar">
+		<div class="nav-brand">
+			<a href="/" style="font-family: 'Courneuf-Outline', cursive;">Pixels</a>
+		</div>
+
+		<!-- 导航链接 -->
+		<ul class="nav-links">
+			<li><a>探索</a></li>
+			<li><a>作品</a></li>
+			<li><a>艺术家</a></li>
+			<li><a>关于</a></li>
+			<input class="search-input" type="text" placeholder="搜索...">
+		</ul>
+
+		<!-- 用户操作 -->
+		<div class="user-actions">
+			<div id="nologin_tabs">
+				<button class="login-btn" onclick="window.location.href='/login.html'">登录</button>
+				<button class="signup-btn">注册</button>
+			</div>
+			<div id="login_tabs" class="login_tabs">
+				<!-- 登录后内容 -->
+			</div>
+		</div>
+
+		<div class="login_tabs_content" id="login_tabs_content">
+			<div class="line" id="login_tabs_content_logout">
+				<img src="/src/assets/logout.svg">
+				退出登录
+			</div>
+
+		</div>
+
+		<!-- 移动端菜单按钮 -->
+		<div class="menu-toggle" onclick="toggleMenu()">
+			<span></span>
+			<span></span>
+			<span></span>
+		</div>
+
+		<!-- 新增的遮罩层 -->
+		<div class="menu-mask" onclick="toggleMenu()"></div>
+	</nav>
+
+	<!-- 页面内容 -->
+	<main>
+		<div class="content-container">
+			<div class="content-slider" id="contentSlider">
+				<div class="content-panel" id="explore">
+					<h2>探索</h2>
+					<div class="card">
+						<div class="card-body">
+							<img class="card-img" style="filter:invert(50%)" src="/favicon.ico">
+							<h3 class="card-title">欢迎来到 Pixels</h3>
+							<p class="card-text">这里是 Pixels 的介绍，欢迎来到 Pixels 平台，这里有许多有趣的作品，快来看看吧！</p>
+						</div>
+					</div>
+				</div>
+				<div class="content-panel" id="artworks">
+					<h2>作品</h2>
+					<div id="artworks_load_pointer">nya</div>
+				</div>
+				<div class="content-panel" id="artists">
+					<h2>艺术家</h2>
+					<div id="artists_load_pointer">nya</div>
+				</div>
+				<div class="content-panel" id="about">
+					<h2>关于</h2>
+					<h3>作者信息：</h3>
+					<p>常用昵称：Demon_player || DemonPlayer</p>
+					<p>邮箱：DemonPlayer0@outlook.com
+					</p>
+					<p>Github：https://github.com/DemonPlayer0</p>
+					<h3>特别鸣谢：</h3>
+					<div style="display: flex; flex-direction: row; align-items: center;">
+						<p>logo字体提供者：Sacripant</p>
+						<img onclick="window.location.href='http:\/\/sacripant.fr/'"
+							style="width: 24px; height: 24px; margin-left: 5px;" src="/src/favicons/Sacripant.ico"
+							alt="个人网站">
+						<img onclick="window.location.href='https:\/\/github.com/Sacripant/';"
+							style="width: 24px; height: 24px; margin-left: 5px;" src="/src/favicons/Github.ico"
+							alt="Github">
+					</div>
+					<p>logo字体：Courneuf-Outline && Courneuf-Regular</p>
+				</div>
+			</div>
+	</main>
+
+	<script>
+		let logged = false;
+		// 移动端菜单切换
+		// 更新toggleMenu函数
+		function toggleMenu() {
+			console.log("toggleMenu")
+			const navLinks = document.querySelector('.nav-links');
+			const menuMask = document.querySelector('.menu-mask');
+			const spans = document.querySelectorAll('.menu-toggle span');
+
+			const isActive = navLinks.classList.toggle('active');
+
+			// 动画效果
+			if (isActive) {
+				spans[0].style.transform = 'rotate(45deg) translate(5.62px, 5.62px)';
+				spans[1].style.opacity = '0';
+				spans[2].style.transform = 'rotate(-45deg) translate(5.62px, -5.62px)';
+				menuMask.style.display = 'block';
+			} else {
+				spans[0].style.transform = 'none';
+				spans[1].style.opacity = '1';
+				spans[2].style.transform = 'none';
+				menuMask.style.display = 'none';
+			}
+		}
+
+		const login_tabs = document.getElementById('login_tabs');
+		const nologin_tabs = document.getElementById('nologin_tabs');
+
+		fetch('/api/real_users/get_info', {
+			method: 'GET',
+		}).then(async response => {
+			const result = await response.json();
+			console.log(result);
+			if (response.ok) {
+				fetch(`/api/virtual_users/get_info?virtual_user_id=${result.virtual_user_id}`, {
+					method: 'GET'
+				}).then(async response => {
+					const result = await response.json();
+					console.log(result);
+					if (response.ok) {
+						login_tabs.innerHTML = `
+							<img style="width: 30px; height: 30px; border: 1px solid #333; margin-right: 10px; border-radius: 50%;" src="/api/virtual_users/get_avatar?virtual_user_id=${result.id}" alt="${result.name}">
+							<a>${result.name}</a>
+						`;
+						nologin_tabs.style.display = 'none';
+						login_tabs.style.display = 'flex';
+						logged = true;
+					} else {
+						nologin_tabs.style.display = 'flex';
+						login_tabs.style.display = 'none';
+					}
+				}).catch(error => {
+					console.log(error);
+				});
+			} else {
+				nologin_tabs.style.display = 'flex';
+				login_tabs.style.display = 'none';
+			}
+		}).catch(error => {
+			console.log(error);
+		});
+
+		const login_tabs_content = document.getElementById('login_tabs_content');
+		//let login_tabs_timer = null;
+		let login_tabs_content_visible = false;
+		function show_login_tabs_content() {
+			//if (login_tabs_timer) clearTimeout(login_tabs_timer);
+			login_tabs_content.style.width = login_tabs.offsetWidth - 20 + 'px';
+			login_tabs_content.style.left = login_tabs.offsetLeft + 'px';
+			login_tabs_content.style.top = login_tabs.offsetTop + login_tabs.offsetHeight + 10 + 'px';
+			login_tabs_content.classList.add('visible');
+			login_tabs_content_visible = true;
+		}
+		function hide_login_tabs_content() {
+			//if (login_tabs_timer) clearTimeout(login_tabs_timer);
+			//login_tabs_timer = setTimeout(() => {
+			//login_tabs_content.classList.remove('visible');
+			//login_tabs_content_visible = false;
+			//}, 200);
+			login_tabs_content.classList.remove('visible');
+			login_tabs_content_visible = false;
+		}
+
+		login_tabs.addEventListener('click', () => {
+			if (login_tabs_content_visible) {
+				hide_login_tabs_content();
+			} else {
+				show_login_tabs_content();
+			}
+		});
+
+		function login_tabs_content_handler(event) {
+			if (!login_tabs_content.contains(event.target) && !login_tabs.contains(event.target)) {
+				hide_login_tabs_content();
+			}
+		}
+		function throttle(func, limit) {
+			let inThrottle;
+			return function () {
+				if (!inThrottle) {
+					func();
+					inThrottle = true;
+					setTimeout(() => inThrottle = false, limit);
+				}
+			};
+		}
+		document.addEventListener('click', login_tabs_content_handler);
+		window.addEventListener('wheel', throttle(hide_login_tabs_content, 200));
+		//login_tabs.addEventListener('mouseenter', () => {
+		//	login_tabs_mouse_ented = true;
+		//	show_login_tabs_content();
+		//	setTimeout(() => {
+		//		login_tabs_mouse_ented = false;
+		//	}, 500);
+		//});
+		//login_tabs.addEventListener('mouseleave', hide_login_tabs_content);
+		//login_tabs_content.addEventListener('mouseenter', show_login_tabs_content);
+		//login_tabs_content.addEventListener('mouseleave', hide_login_tabs_content);
+
+		// 新增展示区切换功能
+		const navLinks = document.querySelectorAll('.nav-links a');
+		const contentSlider = document.getElementById('contentSlider');
+		let currentPanel = 0;
+		const panelCount = 4;
+
+		// 为每个导航链接添加点击事件
+		navLinks.forEach((link, index) => {
+			link.addEventListener('click', (e) => {
+				e.preventDefault();
+				if (index >= 0 && index < panelCount) {
+					switchPanel(index);
+				}
+
+				// 如果是移动端，点击后收起菜单
+				if (window.innerWidth <= 768) {
+					toggleMenu();
+				}
+			});
+		});
+
+		const login_tabs_content_logout = document.getElementById('login_tabs_content_logout');
+		login_tabs_content_logout.addEventListener('click', () => {
+			fetch('/api/real_users/logout', {
+				method: 'POST',
+			}).then(async response => {
+				if (response.ok) {
+					location.reload();
+				}
+			}).catch(error => {
+				console.log(error);
+			});
+		});
+
+		// 创建一个观察器
+		const observer_artworks = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting) {
+					get_new_artworks();
+				}
+			});
+		}, {
+			root: null, // 相对于视口
+			rootMargin: '0px',
+			threshold: 0.1 // 当10%的哨兵元素可见时触发
+		});
+		const observer_artists = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting) {
+					get_new_artists();
+				}
+			});
+		}, {
+			root: null, // 相对于视口
+			rootMargin: '0px',
+			threshold: 0.1 // 当10%的哨兵元素可见时触发
+		});
+		const artworks_panel = document.getElementById('artworks');
+		const artworks_load_pointer = document.getElementById('artworks_load_pointer');
+		const artists_load_pointer = document.getElementById('artists_load_pointer');
+		const intMax = 18446744073709551615n;
+		let last_work_id = intMax;
+		let first_load_artworks = true;
+		let artworks_load_finished = false;
+		function get_new_artworks() {
+			if (!logged) {
+				artworks_load_pointer.innerHTML = '请先登录';
+				return;
+			}
+			if (artworks_load_finished) return;
+			fetch(`/api/push/new_artworks?last_id=${last_work_id}`, {
+				method: 'GET',
+			}).then(async response => {
+				const result = await response.json();
+				console.log(result);
+				if (!response.ok) {
+					artworks_load_pointer.innerHTML = '获取新作品失败';
+					console.log('获取新作品失败');
+					return;
+				}
+				if (result.length === 0) {
+					artworks_load_pointer.innerHTML = '没有了哦！';
+					artworks_load_finished = true;
+					observer_artworks.unobserve(artworks_load_pointer);
+					//console.log('没有了哦！');
+					return;
+				}
+				for (let i = 0; i < result.length; i++) {
+					const artwork = result[i];
+					const card = document.createElement('div');
+					card.classList.add('card');
+					card.innerHTML = `
+						<div class="card-body">
+							<img class="card-img" src="/api/artworks/image?work_id=${artwork.work_id}" alt="${artwork.title}">
+							<h3 class="card-title">${artwork.title}</h3>
+						</div>`;
+					artworks_panel.insertBefore(card, artworks_load_pointer);
+				}
+				last_work_id = result[result.length - 1].work_id;
+			})
+				.catch(error => {
+					console.log(error);
+				});
+		}
+		let last_artist_id = intMax;
+		let first_load_artists = true;
+		let artists_load_finished = false;
+		const artists_panel = document.getElementById('artists');
+		function get_new_artists() {
+			if (!logged) {
+				artists_load_pointer.innerHTML = '请先登录';
+				return;
+			}
+			if (artists_load_finished) return;
+			fetch(`/api/push/new_artists?last_id=${last_artist_id}`, {
+				method: 'GET',
+			}).then(async response => {
+				const result = await response.json();
+				console.log(result);
+				if (!response.ok) {
+					artists_load_pointer.innerHTML = '获取新艺术家失败';
+					console.log('获取新艺术家失败');
+					return;
+				}
+				if (result.length === 0) {
+					artists_load_pointer.innerHTML = '没有了哦！';
+					artists_load_finished = true;
+					observer_artists.unobserve(artists_load_pointer);
+					//console.log('没有了哦！');
+					return;
+				}
+				for (let i = 0; i < result.length; i++) {
+					const artist = result[i];
+					const card = document.createElement('div');
+					card.classList.add('card');
+					card.innerHTML = `
+						<div class="card-body">
+							<img class="card-img" src="/api/virtual_users/get_avatar?virtual_user_id=${artist.id}&black=true" alt="${artist.name}">
+							<h3 class="card-title">${artist.name}</h3>
+						</div>
+					`;
+					artists_panel.insertBefore(card, artists_load_pointer);
+				}
+				last_artist_id = result[result.length - 1].id;
+				console.log(last_artist_id);
+			})
+				.catch(error => {
+					console.log(error);
+				});
+		}
+
+		// 切换展示区函数
+		function switchPanel(index) {
+			if (index === currentPanel) return;
+
+			currentPanel = index;
+			const translateX = -index * 25; // 每个面板占25%
+			contentSlider.style.transform = `translateX(${translateX}%)`;
+
+			// 更新活动状态的导航链接样式
+			navLinks.forEach((link, i) => {
+				if (i === index) {
+					link.classList.add('active');
+				} else {
+					link.classList.remove('active');
+				}
+			});
+
+			switch (index) {
+				case 0:
+					break;
+				case 1:
+					if (first_load_artworks) {
+						get_new_artworks();
+						first_load_artworks = false;
+					}
+					break;
+			}
+		}
+
+		// 初始化第一个面板为活动状态
+		navLinks[0].classList.add('active');
+
+		// 开始观察哨兵元素
+		observer_artworks.observe(artworks_load_pointer);
+		observer_artists.observe(artists_load_pointer);
+	</script>
+</body>
+
+</html>

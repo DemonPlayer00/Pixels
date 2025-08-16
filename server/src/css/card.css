@@ -1,0 +1,67 @@
+/* 基础卡片样式 */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin: 16px;
+    position: relative;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.card-img {
+    width: 100%;
+    max-width: 540px;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    border-radius: 8px;
+    border: #4a55683f solid 1px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #2d3748;
+}
+
+.card-text {
+    color: #4a5568;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.card-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #edf2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-img-container {
+    overflow: hidden;
+    height: 180px;
+}
+
+.card-img-zoom {
+    transition: transform 0.5s ease;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.card:hover .card-img-zoom {
+    transform: scale(1.05);
+}
