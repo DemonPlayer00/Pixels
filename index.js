@@ -10,10 +10,8 @@ const database = require('./utils/database');
 const rate_limit = require('express-rate-limit');
 const compare = require('./utils/compare');
 const errors = require('./utils/errors');
-const { error } = require('console');
 const multer = require('multer'); // 用于处理 multipart/form-data
 const path = require('path');
-const { stringify } = require('querystring');
 
 BigInt.prototype.toJSON = function () {
   return this.toString();
