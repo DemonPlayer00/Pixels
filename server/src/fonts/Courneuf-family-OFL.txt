@@ -1,4 +1,4 @@
-Copyright (c) 2013, Thomas (<URL|email>),
+Copyright (c) 2013, Thomas Jund ( http://sacripant.fr/ ),
 with Reserved Font Name courneuf.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
