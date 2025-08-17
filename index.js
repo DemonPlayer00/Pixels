@@ -12,6 +12,7 @@ const compare = require('./utils/compare');
 const errors = require('./utils/errors');
 const multer = require('multer'); // 用于处理 multipart/form-data
 const path = require('path');
+const r_limit = require('./utils/Rlimit')
 
 BigInt.prototype.toJSON = function () {
   return this.toString();
@@ -314,7 +315,8 @@ app.get('/api/virtual_users/get_info', async (req, res) => {
     conn = await database.getConnection();
 
     const [user] = await conn.execute(
-      `SELECT id, name${full === 'true' ? ', description, created_at' : ''} FROM virtual_users WHERE id = ?`,
+      `SELECT id, name${full === 'true' ? ', description, created_at' : ''} 
+      FROM virtual_users WHERE id = ?`,
       [virtual_user_id]
     );
 
@@ -398,6 +400,7 @@ app.get('/api/virtual_users/get_artwork_list', async (req, res) => {
        FROM artworks 
        WHERE user_id = ? 
        ${cursor_condition}
+       ${r_limit.getLimitSqlText(req)}
        ORDER BY created_at DESC, work_id DESC
        LIMIT ?`,
       [...cursor_params, limit]
@@ -420,7 +423,8 @@ app.get('/api/artworks/info', async (req, res) => {
     const artwork = await db.withConnection(async (conn) => {
       const [artworks] = await conn.execute(
         `SELECT title, description, created_at 
-         FROM artworks WHERE work_id = ?`,
+         FROM artworks WHERE work_id = ?
+         ${r_limit.getLimitSqlText(req)}`,
         [work_id]
       );
 
@@ -624,6 +628,7 @@ app.get('/api/search/artworks', async (req, res) => {
           FROM artworks
           WHERE MATCH(artworks.title) AGAINST(? IN NATURAL LANGUAGE MODE)
           ${cursor_condition}
+          ${r_limit.getLimitSqlText(req)}
           ORDER BY artworks.created_at DESC, artworks.work_id DESC
           LIMIT 25)
      
@@ -634,6 +639,7 @@ app.get('/api/search/artworks', async (req, res) => {
           JOIN artworks_tags ON artworks.work_id = artworks_tags.work_id
           WHERE ${tag_condition}
           ${cursor_condition}
+          ${r_limit.getLimitSqlText(req)}
           ORDER BY artworks.created_at DESC, artworks.work_id DESC
           LIMIT 25)
       ) AS combined
@@ -703,7 +709,11 @@ app.get('/api/push/new_artworks', async (req, res) => {
     conn = await database.getConnection();
 
     const artworks = await conn.execute(
-      `SELECT work_id, title FROM artworks WHERE work_id < ? ORDER BY work_id DESC LIMIT 30`,
+      `SELECT work_id, title FROM artworks 
+      WHERE work_id < ? 
+      ${r_limit.getLimitSqlText(req)}
+      ORDER BY work_id DESC 
+      LIMIT 30`,
       [last_id]
     );
 
