@@ -26,6 +26,8 @@
 
 .card-body {
     padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 .card-title {
@@ -33,6 +35,7 @@
     font-weight: 600;
     margin-bottom: 12px;
     color: #2d3748;
+    line-height: 100%;
 }
 
 .card-text {

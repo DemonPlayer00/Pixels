@@ -633,10 +633,31 @@
 					const artist = result[i];
 					const card = document.createElement('div');
 					card.classList.add('card');
+					let innerHTML = `<div class="card-body">
+										<div style="display: flex; align-items: center;">`;
+					await fetch(`/api/virtual_users/get_artwork_list?virtual_user_id=${artist.id}&limit=3`, {
+						method: 'GET'
+					}).then(async response => {
+						const artworks = await response.json();
+						console.log(artworks);
+						if (response.ok) {
+							for (let j = 0; j < artworks.length; j++) {
+								const artwork = artworks[j];
+								innerHTML += `
+									<img class="card-img" style="width:33.33%; aspect-ratio: 1/1; object-fit: cover; margin:5px;" src="/api/artworks/image?work_id=${artwork.work_id}" alt="${artwork.title}">
+								`;
+							}
+						}
+					}).catch(error => {
+						console.log(error);
+					});
 					card.innerHTML = `
-						<div class="card-body">
-							<img class="card-img" src="/api/virtual_users/get_avatar?virtual_user_id=${artist.id}&black=true" alt="${artist.name}">
-							<h3 class="card-title">${artist.name}</h3>
+						${innerHTML}
+						</div>
+							<div style="display: flex; align-items: center;">
+								<img style="width: 30px; height: 30px; border: 1px solid #333; margin-right: 10px; border-radius: 50%;" src="/api/virtual_users/get_avatar?virtual_user_id=${artist.id}&black=true" alt="${artist.name}">
+								<h3 class="card-title">${artist.name}</h3>
+							</div>
 						</div>
 					`;
 					artists_panel.insertBefore(card, artists_load_pointer);

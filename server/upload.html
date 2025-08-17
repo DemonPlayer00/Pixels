@@ -149,6 +149,22 @@
         #tagsInput {
             margin-bottom: 5px;
         }
+
+        /* 新增年龄限制选项样式 */
+        .age-restriction-group {
+            margin-bottom: 20px;
+        }
+        .age-restriction-options {
+            display: flex;
+            gap: 15px;
+        }
+        .age-restriction-option {
+            display: flex;
+            align-items: center;
+        }
+        .age-restriction-option input {
+            margin-right: 5px;
+        }
     </style>
 </head>
 
@@ -170,7 +186,7 @@
 
         <!-- 标题 -->
         <div class="form-group">
-            <label for="title">作品标题</label>
+            <label for="title" id="titleLabel">作品标题</label>
             <input type="text" id="title" name="title" placeholder="请输入作品标题" maxlength="255">
         </div>
 
@@ -178,6 +194,25 @@
         <div class="form-group">
             <label for="description">作品描述</label>
             <textarea id="description" name="description" placeholder="请输入作品描述"></textarea>
+        </div>
+
+        <!-- 新增年龄限制选项 -->
+        <div class="form-group age-restriction-group">
+            <label>年龄限制 <span style="color:red">*</span></label>
+            <div class="age-restriction-options">
+                <div class="age-restriction-option">
+                    <input type="radio" id="ageAll" name="age_restriction" value="all">
+                    <label for="ageAll">全年龄</label>
+                </div>
+                <div class="age-restriction-option">
+                    <input type="radio" id="ageR18" name="age_restriction" value="r18">
+                    <label for="ageR18">R18</label>
+                </div>
+                <div class="age-restriction-option">
+                    <input type="radio" id="ageR18G" name="age_restriction" value="r18g">
+                    <label for="ageR18G">R18G</label>
+                </div>
+            </div>
         </div>
 
         <!-- 标签 -->
@@ -230,11 +265,26 @@
                 handleFileSelect({ target: { files: e.dataTransfer.files } });
             });
 
-            // 标签输入框回车事件
+            const fileInput = document.getElementById('fileInput');
+            const title = document.getElementById('title');
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length === 1) title.value = e.target.files[0].name.replace(/\.(png|jpg|jpeg|webp)$/i, '');
+            });
+
+            // 标签输入框回车事件 - 修改后版本
             document.getElementById('tagsInput').addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    addTag(this.value.trim());
+                    const tagText = this.value.trim();
+
+                    // 检查是否为R18或R18G标签（不区分大小写）
+                    const lowerTag = tagText.toLowerCase();
+                    if (lowerTag === 'r18' || lowerTag === 'r18g') {
+                        showMessage('不能手动添加R18/R18G标签，请使用年龄限制选项设置', 'error');
+                        return;
+                    }
+
+                    addTag(tagText);
                     this.value = '';
                 }
             });
@@ -360,6 +410,14 @@
             // 添加其他字段
             formData.append('title', title);
             formData.append('description', description);
+
+            // 根据年龄限制自动添加标签
+            const finalTags = [...tags];
+            if (ageRestriction.value === 'r18') {
+                finalTags.push('R18');
+            } else if (ageRestriction.value === 'r18g') {
+                finalTags.push('R18G');
+            }
 
             // 将tags数组转为JSON字符串
             formData.append('tags', JSON.stringify(tags));

@@ -367,12 +367,14 @@ app.get('/api/virtual_users/get_avatar', async (req, res) => {
 app.get('/api/virtual_users/get_artwork_list', async (req, res) => {
   let conn;
   try {
-    let { virtual_user_id, last_id, last_created } = req.query;
+    let { virtual_user_id, last_id, last_created, limit } = req.query;
     virtual_user_id = BigInt(virtual_user_id);
 
     if (!compare.is_sqlUBigInt(virtual_user_id)) {
       return res.status(400).json({ error: 'virtual user ID is required' });
     }
+    limit = limit? BigInt(limit) : 25n;
+    if(limit < 1n || limit > 25n)limit = 25n;
 
     conn = await database.getConnection();
 
@@ -397,10 +399,11 @@ app.get('/api/virtual_users/get_artwork_list', async (req, res) => {
        WHERE user_id = ? 
        ${cursor_condition}
        ORDER BY created_at DESC, work_id DESC
-       LIMIT 25`,
-      cursor_params
+       LIMIT ?`,
+      [...cursor_params, limit]
     );
 
+    //console.log(limit, artworks.length);
     res.json(artworks);
   } catch (err) {
     console.error('Get virtual user artworks error:', err);
@@ -807,6 +810,7 @@ app.post('/api/artworks/upload', upload.fields([
       move_promises.push(fs.promises.rename(dest, path.join(artwork_dir, (i+1).toString())));
     }
     await Promise.all(move_promises);
+    fs.rmdirSync(images[0].destination);
 
     await conn.commit();
     res.json({ work_id });
