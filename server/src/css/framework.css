@@ -4,11 +4,27 @@ body {
     font-family: 'Segoe UI', Verdana, sans-serif;
 }
 
+/* 全局设置所有图片默认渲染方式 */
 img {
-    image-rendering: pixelated;
+    image-rendering: auto;
+    /* 默认平滑 */
+}
+
+/* 当渲染尺寸≤256px时关闭平滑 */
+img[width][width<=256],
+img[height][height<=256],
+img[style*="width:"][style*="<=256"],
+img[style*="height:"][style*="<=256"] {
     image-rendering: crisp-edges;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-optimize-contrast;
+    image-rendering: pixelated;
+}
+
+/* 响应式处理（针对通过CSS控制尺寸的情况） */
+@media (max-width: 256px),
+(max-height: 256px) {
+    img {
+        image-rendering: pixelated;
+    }
 }
 
 /* 顶栏容器 */
@@ -55,6 +71,7 @@ img {
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'Courneuf-Outline';
     src: url('/src/fonts/Courneuf-Outline.ttf') format('truetype');

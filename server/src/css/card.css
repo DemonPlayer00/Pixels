@@ -7,6 +7,8 @@
     transition: all 0.3s ease;
     margin: 16px;
     position: relative;
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .card:hover {
@@ -22,6 +24,9 @@
     display: block;
     border-radius: 8px;
     border: #4a55683f solid 1px;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    contain: strict;
 }
 
 .card-body {

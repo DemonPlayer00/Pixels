@@ -713,5 +713,39 @@
 		observer_artists.observe(artists_load_pointer);
 	</script>
 </body>
+<script>
+	// 使用MutationObserver监控所有图片
+	const observer = new MutationObserver(mutations => {
+		mutations.forEach(mutation => {
+			mutation.addedNodes.forEach(node => {
+				if (node.nodeName === 'IMG') checkImageSmoothing(node);
+			});
+		});
+	});
+
+	// 检查并设置图片渲染方式
+	function checkImageSmoothing(img) {
+		const width = parseInt(img.width || img.getAttribute('width') || img.clientWidth);
+		const height = parseInt(img.height || img.getAttribute('height') || img.clientHeight);
+
+		if ((width && width <= 256) || (height && height <= 256)) {
+			img.style.imageRendering = 'pixelated';
+			// 兼容性处理
+			img.style.msInterpolationMode = 'nearest-neighbor';
+		} else {
+			img.style.imageRendering = 'auto';
+			img.style.msInterpolationMode = '';
+		}
+	}
+
+	// 初始检查已有图片
+	document.querySelectorAll('img').forEach(checkImageSmoothing);
+
+	// 开始观察整个文档
+	observer.observe(document.body, {
+		childList: true,
+		subtree: true
+	});
+</script>
 
 </html>
