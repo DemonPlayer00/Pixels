@@ -154,14 +154,17 @@
         .age-restriction-group {
             margin-bottom: 20px;
         }
+
         .age-restriction-options {
             display: flex;
             gap: 15px;
         }
+
         .age-restriction-option {
             display: flex;
             align-items: center;
         }
+
         .age-restriction-option input {
             margin-right: 5px;
         }
@@ -173,7 +176,7 @@
 
     <div id="message" class="error" style="display: none;"></div>
 
-    <form id="uploadForm">
+    <form id="uploadForm" autocomplete="off">
         <!-- 图片上传 -->
         <div class="form-group">
             <label for="images">作品图片 (最多32张)</label>
@@ -265,12 +268,6 @@
                 handleFileSelect({ target: { files: e.dataTransfer.files } });
             });
 
-            const fileInput = document.getElementById('fileInput');
-            const title = document.getElementById('title');
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length === 1) title.value = e.target.files[0].name.replace(/\.(png|jpg|jpeg|webp)$/i, '');
-            });
-
             // 标签输入框回车事件 - 修改后版本
             document.getElementById('tagsInput').addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
@@ -288,6 +285,9 @@
                     this.value = '';
                 }
             });
+            //const ageRestriction = document.querySelector('input[name="age_restriction"]:checked');
+            //console.log(ageRestriction);
+            //console.log(ageRestriction.checked);
         });
 
         // 添加标签
@@ -329,6 +329,7 @@
             document.getElementById('tags').value = tags.join(',');
         }
 
+        const titleInput = document.getElementById('title');
         // 处理文件选择
         function handleFileSelect(event) {
             const files = event.target.files;
@@ -344,24 +345,30 @@
             for (let i = 0; i < files.length; i++) {
                 selectedFiles.push(files[i]);
             }
+            titleInput.value = selectedFiles[0].name.replace(/\.(png|jpg|jpeg|gif|webp)$/i, '');
 
             // 更新预览
             updatePreview();
         }
 
         // 更新图片预览
-        function updatePreview() {
+        async function updatePreview() {
             const previewContainer = document.getElementById('previewContainer');
             previewContainer.innerHTML = '';
 
-            selectedFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
+            // 按顺序处理每个文件
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const index = i;
+
+                try {
+                    const result = await readFileAsDataURL(file);
+
                     const previewItem = document.createElement('div');
                     previewItem.className = 'preview-item';
 
                     const img = document.createElement('img');
-                    img.src = e.target.result;
+                    img.src = result;
                     img.className = 'preview-image';
 
                     const removeBtn = document.createElement('button');
@@ -375,7 +382,18 @@
                     previewItem.appendChild(img);
                     previewItem.appendChild(removeBtn);
                     previewContainer.appendChild(previewItem);
-                };
+                } catch (error) {
+                    console.error('读取文件失败:', error);
+                }
+            }
+            console.log(selectedFiles);
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
                 reader.readAsDataURL(file);
             });
         }
@@ -413,14 +431,20 @@
 
             // 根据年龄限制自动添加标签
             const finalTags = [...tags];
+            const ageRestriction = document.querySelector('input[name="age_restriction"]:checked');
+            console.log(ageRestriction.value);
             if (ageRestriction.value === 'r18') {
                 finalTags.push('R18');
             } else if (ageRestriction.value === 'r18g') {
                 finalTags.push('R18G');
+            } else if (ageRestriction.value === 'all') {
+            } else {
+                console.error('年龄限制选项未设置');
+                return;
             }
 
             // 将tags数组转为JSON字符串
-            formData.append('tags', JSON.stringify(tags));
+            formData.append('tags', JSON.stringify(finalTags));
 
             // 如果是管理员，添加执行用户ID
             const executeUserId = document.getElementById('execute_user_id').value;

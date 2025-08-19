@@ -514,23 +514,9 @@ app.get('/api/artworks/image', async (req, res) => {
     }
 
     const imagePath = path.join(imageDir, imageFile);
-    const fileExt = path.extname(imageFile).toLowerCase();
-
-    // 根据扩展名设置MIME类型
-    const mimeTypes = {
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.gif': 'image/gif',
-      '.webp': 'image/webp',
-      '.svg': 'image/svg+xml'
-    };
-
-    const contentType = mimeTypes[fileExt] || 'application/octet-stream';
 
     // 流式传输图片
     const stat = await fs.promises.stat(imagePath);
-    res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Length', stat.size);
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.setHeader('Last-Modified', stat.mtime.toUTCString());
@@ -768,6 +754,7 @@ app.post('/api/artworks/upload', upload.fields([
 
     if (!images || images.length === 0) return res.status(400).json({ error: 'At least one image is required' });
     tags = JSON.parse(tags);
+    console.log(tags);
     if (!tags || tags.length === 0) return res.status(400).json({ error: 'At least one tag is required' });
     if (!title || !title.trim()) return res.status(400).json({ error: 'Title is required' });
     if (!description || !description.trim()) description = '';
