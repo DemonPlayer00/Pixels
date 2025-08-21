@@ -13,6 +13,9 @@ const errors = require('./utils/errors');
 const multer = require('multer'); // 用于处理 multipart/form-data
 const path = require('path');
 const r_limit = require('./utils/Rlimit')
+const sharp = require('sharp');
+const imagectl = require('./utils/imagectl');
+
 
 BigInt.prototype.toJSON = function () {
   return this.toString();
@@ -375,8 +378,8 @@ app.get('/api/virtual_users/get_artwork_list', async (req, res) => {
     if (!compare.is_sqlUBigInt(virtual_user_id)) {
       return res.status(400).json({ error: 'virtual user ID is required' });
     }
-    limit = limit? BigInt(limit) : 25n;
-    if(limit < 1n || limit > 25n)limit = 25n;
+    limit = limit ? BigInt(limit) : 25n;
+    if (limit < 1n || limit > 25n) limit = 25n;
 
     conn = await database.getConnection();
 
@@ -459,10 +462,11 @@ app.get('/api/artworks/info', async (req, res) => {
 app.get('/api/artworks/image', async (req, res) => {
   let conn;
   try {
-    let { work_id, page } = req.query;
+    let { work_id, page, small } = req.query;
     work_id = BigInt(work_id);
     real_user_id = req.real_user.id;
     page = parseInt(page) || 1;
+    small = small === 'true';
 
     if (!compare.is_sqlUBigInt(work_id)) {
       return res.status(400).json({ error: 'work ID is required' });
@@ -492,9 +496,8 @@ app.get('/api/artworks/image', async (req, res) => {
 
     // 安全构建图片目录路径
     const safeWorkId = work_id.toString();
-    const safePage = page.toString();
     const imageDir = path.join(__dirname, 'stockroom', 'artworks', safeWorkId);
-
+    let imagePath = null;
     // 检查目录是否存在
     try {
       await fs.promises.access(imageDir, fs.constants.R_OK);
@@ -502,19 +505,26 @@ app.get('/api/artworks/image', async (req, res) => {
       return errors.sendError(res, 404);
     }
 
-    // 读取目录内容，查找匹配的图片文件
-    const files = await fs.promises.readdir(imageDir);
-    const imageFile = files.find(file => {
-      const fileName = path.parse(file).name; // 获取不带扩展名的文件名
-      return fileName === safePage;
-    });
+    if (small) {
+      const imageFile = path.join(imageDir, 'SMALL');
+      if (!await imagectl.checkSmallImageAvailable(safeWorkId)) await imagectl.generateSmallImage(safeWorkId);
+      imagePath = imageFile;
+    } else {
+      const safePage = page.toString();
 
-    if (!imageFile) {
-      return errors.sendError(res, 404);
+      // 读取目录内容，查找匹配的图片文件
+      const files = await fs.promises.readdir(imageDir);
+      const imageFile = files.find(file => {
+        const fileName = path.parse(file).name; // 获取不带扩展名的文件名
+        return fileName === safePage;
+      });
+
+      if (!imageFile) {
+        return errors.sendError(res, 404);
+      }
+
+      imagePath = path.join(imageDir, imageFile);
     }
-
-    const imagePath = path.join(imageDir, imageFile);
-
     // 流式传输图片
     const stat = await fs.promises.stat(imagePath);
     res.setHeader('Content-Length', stat.size);
@@ -527,15 +537,17 @@ app.get('/api/artworks/image', async (req, res) => {
       return res.status(304).end();
     }
 
-    const readStream = fs.createReadStream(imagePath);
-    readStream.on('error', (err) => {
-      console.error('Stream error:', err);
-      if (!res.headersSent) {
+    if(small){
+      const buffer = await imagectl.getSmallImageBuffer(safeWorkId);
+      res.send(buffer);
+    }else{
+      const stream = fs.createReadStream(imagePath);
+      stream.on('error', err => {
+        console.error('Read image error:', err);
         errors.sendError(res, 500);
-      }
-    });
-    readStream.pipe(res);
-
+      });
+      stream.pipe(res);
+    }
   } catch (err) {
     console.error('Get artwork images error:', err);
     errors.sendError(res, 500);
@@ -804,7 +816,7 @@ app.post('/api/artworks/upload', upload.fields([
     for (let i = 0; i < images.length; i++) {
       console.log(images[i]);
       const dest = path.join(images[i].path);
-      move_promises.push(fs.promises.rename(dest, path.join(artwork_dir, (i+1).toString())));
+      move_promises.push(fs.promises.rename(dest, path.join(artwork_dir, (i + 1).toString())));
     }
     await Promise.all(move_promises);
     fs.rmdirSync(images[0].destination);

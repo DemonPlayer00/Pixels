@@ -168,6 +168,7 @@
 			grid-template-columns: repeat(5, 1fr);
 			/* 3列 */
 			gap: 15px;
+			max-width: 2200px;
 		}
 
 		.content-streams .card {
@@ -631,7 +632,7 @@
 					card.classList.add('card');
 					card.innerHTML = `
 						<div class="card-body">
-							<img loading="lazy" class="card-img" src="/api/artworks/image?work_id=${artwork.work_id}" alt="${artwork.title}">
+							<img loading="lazy" class="card-img" src="/api/artworks/image?work_id=${artwork.work_id}&small=true" alt="${artwork.title}">
 							<h3 class="card-title">${artwork.title}</h3>
 						</div>`;
 					artworks_streams.appendChild(card);
