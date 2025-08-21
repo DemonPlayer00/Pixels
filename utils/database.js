@@ -2,7 +2,7 @@ const mariaDB = require('mariadb');
 const path = require('path');
 const env = require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-console.log(process.env);
+// console.log(process.env);
 
 // 创建连接池
 const pool = mariaDB.createPool({
