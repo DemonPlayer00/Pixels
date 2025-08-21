@@ -141,12 +141,14 @@
 		}
 
 		.content-container {
+			position: sticky;
 			width: 100%;
 			max-height: 100%;
 			overflow-x: hidden;
 		}
 
 		.content-slider {
+			position: fixed;
 			display: flex;
 			width: 400%;
 			/* 4个展示区 */
@@ -161,6 +163,7 @@
 			/* 每个展示区占1/4 */
 			height: 100%;
 			padding: 16px;
+			overflow-y: scroll;
 		}
 
 		.content-streams {
@@ -198,6 +201,7 @@
 			pointer-events: auto;
 			opacity: 1;
 			transform: translateY(0);
+			z-index: 6000;
 		}
 
 		.login_tabs_content:hover {
