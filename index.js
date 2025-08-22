@@ -102,12 +102,20 @@ app.post('/api/real_users/login', rate_limit({
 
     const currentTimestamp = Date.now();
 
-    console.log(req.ip, user.password_hash)
+    console.log(req.ip, user.password_hash);
     // 2. 验证密码
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    if (!isPasswordValid) {
-      await conn.rollback();
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user.password_hash) {
+      console.log('No password hash found, creating new one');
+      await conn.execute(
+        'UPDATE real_users SET password_hash = ? WHERE id = ?',
+        [bcrypt.hashSync(password, 12), user.id]
+      )
+    } else {
+      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+      if (!isPasswordValid) {
+        await conn.rollback();
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
     }
 
     // 3. 检查现有token是否有效（使用时间戳比较）
@@ -537,10 +545,10 @@ app.get('/api/artworks/image', async (req, res) => {
       return res.status(304).end();
     }
 
-    if(small){
+    if (small) {
       const buffer = await imagectl.getSmallImageBuffer(safeWorkId);
       res.send(buffer);
-    }else{
+    } else {
       const stream = fs.createReadStream(imagePath);
       stream.on('error', err => {
         console.error('Read image error:', err);
