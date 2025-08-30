@@ -54,7 +54,7 @@ app.get('/api/throw', (req, res) => {
 // 配置multer将文件暂存到缓存目录
 const diskStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const cacheDir = path.join(__dirname, 'stockroom', 'artworks.cache', 'temp_' + Date.now());
+    const cacheDir = path.join(__dirname, 'stockroom', 'artworks.cache', 'temp_' + Date.now() + '_' + crypto.randomBytes(16).toString('hex'));
     fs.mkdirSync(cacheDir, { recursive: true });
     req.uploadCacheDir = cacheDir; // 保存缓存目录路径到请求对象
     cb(null, cacheDir);
@@ -744,7 +744,16 @@ app.get('/api/push/new_artists', async (req, res) => {
     conn = await database.getConnection();
 
     const virtual_users = await conn.execute(
-      `SELECT id, name FROM virtual_users WHERE id < ? ORDER BY id DESC LIMIT 30`,
+      `SELECT id, name 
+      FROM virtual_users 
+      WHERE id < ? 
+      AND EXISTS (
+        SELECT 1 
+        FROM artworks 
+        WHERE artworks.user_id = virtual_users.id
+      )
+      ORDER BY id DESC 
+      LIMIT 30`,
       [last_id]
     );
 

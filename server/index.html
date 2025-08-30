@@ -692,7 +692,7 @@
 							for (let j = 0; j < artworks.length; j++) {
 								const artwork = artworks[j];
 								innerHTML += `
-									<img class="card-img" style="width:33.33%; aspect-ratio: 1/1; object-fit: cover; margin:5px;" src="/api/artworks/image?work_id=${artwork.work_id}" alt="${artwork.title}">
+									<img class="card-img" style="width:33.33%; aspect-ratio: 1/1; object-fit: cover; margin:5px;" src="/api/artworks/image?small=true&work_id=${artwork.work_id}" alt="${artwork.title}">
 								`;
 							}
 						}
