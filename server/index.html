@@ -550,6 +550,22 @@
 		let currentPanel = 0;
 		const panelCount = 4;
 
+		const pressedKeys = new Set();
+		document.addEventListener('keydown', (e) => {
+			pressedKeys.add(e.key);
+			if (pressedKeys.has('ArrowRight') || pressedKeys.has('ArrowLeft')) {
+				e.preventDefault();
+				let newPanelIndex = currentPanel + (pressedKeys.has('ArrowRight')? 1 : -1);
+				if(newPanelIndex < 1)newPanelIndex += panelCount;
+				if(newPanelIndex >= panelCount)newPanelIndex -= panelCount;
+				switchPanel(newPanelIndex);
+			}
+		});
+
+		document.addEventListener('keyup', (e) => {
+			pressedKeys.delete(e.key);
+		});
+
 		// 为每个导航链接添加点击事件
 		navLinks.forEach((link, index) => {
 			link.addEventListener('click', (e) => {
