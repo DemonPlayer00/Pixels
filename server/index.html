@@ -553,7 +553,7 @@
 		const pressedKeys = new Set();
 		document.addEventListener('keydown', (e) => {
 			pressedKeys.add(e.key);
-			if (pressedKeys.has('ArrowRight') || pressedKeys.has('ArrowLeft')) {
+			if ((pressedKeys.has('ArrowRight') || pressedKeys.has('ArrowLeft')) && pressedKeys.has('Control') && pressedKeys.size === 2) {
 				e.preventDefault();
 				let newPanelIndex = currentPanel + (pressedKeys.has('ArrowRight')? 1 : -1);
 				if(newPanelIndex < 1)newPanelIndex += panelCount;
