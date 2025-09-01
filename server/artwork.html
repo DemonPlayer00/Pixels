@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Artwork</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/css/framework.css">
+    <link rel="stylesheet" href="/src/css/card.css">
+</head>
+
+<style>
+    .artwork_img {
+        width: max-content;
+        height: max-content;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        max-width: 75%;
+        max-height: 75%;
+    }
+</style>
+
+<body>
+    <div style="padding: 10px">
+        <div id="artworkGroup" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <img id="artwork_img" class="artwork_img" src="/src/assets/default-avatar-black.png">
+        </div>
+        <scan id="title" style="font-size: 24px;">ArtworkName</scan>
+        <p></p>
+        <scan id="created_at" style="opacity: 0.5; font-size: 14px;">0000-00-00 00:00:00</scan>
+        <div style="display:flex; margin-top: 5px;">
+            <img id="artist_avatar" src="/src/assets/default-avatar-black.png" style="width: 50px; height: 50px; border-radius: 50%;">
+            <p id="artist" style="font-size: 16px; margin-left: 10px;">Artist</p>
+        </div>
+        <scan></scan>
+        <p id="description" style="font-size: 16px;">Description</p>
+        <p id="tags" style="font-size: 16px;">Tags</p>
+    </div>
+</body>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const artwork = {
+        work_id: urlParams.get('work_id')
+    };
+    try {
+        fetch('/api/real_users/get_info', {
+            method: 'GET'
+        }).then(response => {
+            if (response.ok) {
+                console.log(response);
+                return response.json();
+            } else {
+                throw new Error('Verify user information failed.', response);
+            }
+        });
+        fetch(`/api/artworks/info?work_id=${artwork.work_id}&full=true`, {
+            method: 'GET'
+        }).then(response => {
+            if (response.ok) {
+                console.log(response);
+                return response.json();
+            } else {
+                throw new Error('Get artwork information failed.', response);
+            }
+        }).then(async data => {
+            console.log(data);
+            await fetch(`/api/virtual_users/info?virtual_user_id=${data.user_id}`, {
+                method: 'GET'
+            }).then(response => {
+                if (response.ok) {
+                    console.log(response);
+                    return response.json();
+                } else {
+                    throw new Error('Get virtual user information failed.', response);
+                }
+            }).then(user_data => {
+                //console.log(user_data);
+                data.artist = user_data.name;
+                //console.log(data);
+                const artwork_group = document.getElementById('artworkGroup');
+                artwork_group.innerHTML = '';
+                for (let i = 1; i <= data.page_count; i++) {
+                    const img = document.createElement('img');
+                    img.src = `/api/artworks/image?work_id=${artwork.work_id}&page=${i}`;
+                    img.classList.add('artwork_img');
+                    artwork_group.appendChild(img);
+                }
+                document.getElementById('title').textContent = data.title || "Untitled";
+                document.getElementById('created_at').textContent = new Date(parseInt(data.created_at)).toLocaleString() || "Unknown";
+                document.getElementById('artist_avatar').src = `/api/virtual_users/get_avatar?virtual_user_id=${data.user_id}`;
+                document.getElementById('artist').textContent = data.artist || "Unknown";
+                document.getElementById('description').textContent = data.description || " ";
+                document.getElementById('tags').textContent = data.tags;
+            });
+        });
+    } catch (error) {
+        console.log(error);
+        //window.location.href = '/index.html';
+    }
+</script>
+
+</html>

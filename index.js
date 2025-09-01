@@ -428,41 +428,56 @@ app.get('/api/virtual_users/get_artwork_list', async (req, res) => {
 });
 
 app.get('/api/artworks/info', async (req, res) => {
+  let conn;
   try {
-    const work_id = validate.validateBigInt(req.query.work_id, 'work_id');
+    const work_id = BigInt(req.query.work_id);
+    const extra_sql_text = req.query.full === 'true' ? ', description, created_at' : '';
+    if (!compare.is_sqlUBigInt(work_id)) {
+      return res.status(400).json({ error: 'work ID is required' });
+    }
 
-    const artwork = await db.withConnection(async (conn) => {
-      const [artworks] = await conn.execute(
-        `SELECT title, user_id, description, created_at 
+    conn = await database.getConnection();
+
+    const [artwork] = await conn.execute(
+      `SELECT title, user_id${extra_sql_text}
          FROM artworks WHERE work_id = ?
          ${r_limit.getLimitSqlText(req)}`,
-        [work_id]
-      );
+      [work_id]
+    );
+    console.log(artwork);
 
-      if (!artworks.length) {
-        throw { status: 404, message: 'Artwork not found' };
-      }
+    if (!artwork) {
+      throw { status: 404, message: 'Artwork not found' };
+    }
 
-      // 获取图片数量
-      const artworkDir = path.join(__dirname, 'stockroom', 'artworks', work_id.toString());
-      let page_count = 0;
+    const tags_json = await conn.execute(
+      `SELECT tag FROM artworks_tags WHERE work_id = ?`,
+      [work_id]
+    );
+    artwork.tags = '';
+    for (const tag of tags_json) {
+      artwork.tags += '#' + tag.tag + '\t';
+    }
 
-      try {
-        const files = await fs.promises.readdir(artworkDir);
-        page_count = files.filter(file => {
-          return /^\d+$/.test(file);
-        }).length;
-      } catch (err) {
-        if (err.code !== 'ENOENT') throw err;
-      }
+    // 获取图片数量
+    const artworkDir = path.join(__dirname, 'stockroom', 'artworks', work_id.toString());
+    let page_count = 0;
 
-      return { ...artworks[0], page_count };
-    });
+    try {
+      const files = await fs.promises.readdir(artworkDir);
+      page_count = files.filter(file => {
+        return /^\d+$/.test(file);
+      }).length;
+    } catch (err) {
+      if (err.code !== 'ENOENT') throw err;
+    }
 
-    res.json(artwork);
+    res.json( { ...artwork, page_count });
   } catch (err) {
     console.error('Get artwork info error:', err);
     errors.sendError(res, err.status || 500);
+  } finally {
+    if (conn) conn.release();
   }
 });
 
@@ -545,7 +560,7 @@ app.get('/api/artworks/image', async (req, res) => {
     }
 
     if (small) {
-      const buffer = await imagectl.getSmallImageBuffer(safeWorkId);
+      const buffer = imagectl.getSmallImageBuffer(safeWorkId);
       res.send(buffer);
     } else {
       const stream = fs.createReadStream(imagePath);
