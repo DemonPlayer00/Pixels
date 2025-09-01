@@ -433,7 +433,7 @@ app.get('/api/artworks/info', async (req, res) => {
 
     const artwork = await db.withConnection(async (conn) => {
       const [artworks] = await conn.execute(
-        `SELECT title, description, created_at 
+        `SELECT title, user_id, description, created_at 
          FROM artworks WHERE work_id = ?
          ${r_limit.getLimitSqlText(req)}`,
         [work_id]
@@ -449,10 +449,9 @@ app.get('/api/artworks/info', async (req, res) => {
 
       try {
         const files = await fs.promises.readdir(artworkDir);
-        page_count = files.filter(file =>
-          ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
-            .includes(path.extname(file).toLowerCase())
-        ).length;
+        page_count = files.filter(file => {
+          return /^\d+$/.test(file);
+        }).length;
       } catch (err) {
         if (err.code !== 'ENOENT') throw err;
       }
