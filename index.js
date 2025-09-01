@@ -313,7 +313,7 @@ app.post('/api/real_users/logout', async (req, res) => {
   res.send('Logout success');
 })
 
-app.get('/api/virtual_users/get_info', async (req, res) => {
+app.get('/api/virtual_users/info', async (req, res) => {
   let conn;
   try {
     let { virtual_user_id, full } = req.query;

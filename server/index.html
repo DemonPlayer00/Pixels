@@ -459,7 +459,7 @@
 			const result = await response.json();
 			console.log(result);
 			if (response.ok) {
-				fetch(`/api/virtual_users/get_info?virtual_user_id=${result.virtual_user_id}`, {
+				fetch(`/api/virtual_users/info?virtual_user_id=${result.virtual_user_id}`, {
 					method: 'GET'
 				}).then(async response => {
 					const result = await response.json();
