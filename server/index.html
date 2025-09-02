@@ -724,7 +724,7 @@
 					card.innerHTML = `
 						${innerHTML}
 						</div>
-							<div style="display: flex; align-items: center;">
+							<div style="display: flex; align-items: center;" onclick="window.location.href='/artist.html?user_id=${artist.id}'">
 								<img loading="lazy" style="width: 30px; height: 30px; border: 1px solid #333; margin-right: 10px; border-radius: 50%;" src="/api/virtual_users/get_avatar?virtual_user_id=${artist.id}&black=true" alt="${artist.name}">
 								<h3 class="card-title">${artist.name}</h3>
 							</div>

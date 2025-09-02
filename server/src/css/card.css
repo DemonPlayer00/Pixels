@@ -6,12 +6,19 @@
     transition: all 0.3s ease;
     margin: 16px;
     transform: translateZ(0);
+    cursor: pointer;
 }
 
 .card:hover {
     will-change: transform;
     transform: translateY(-5px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.card:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    background-color: #00000022;
 }
 
 .card-img {
