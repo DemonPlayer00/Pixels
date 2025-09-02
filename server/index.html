@@ -714,7 +714,7 @@
 							for (let j = 0; j < artworks.length; j++) {
 								const artwork = artworks[j];
 								innerHTML += `
-									<img class="card-img" style="width:33.33%; aspect-ratio: 1/1; object-fit: cover; margin:5px;" src="/api/artworks/image?small=true&work_id=${artwork.work_id}" alt="${artwork.title}"
+									<img loading="lazy" class="card-img" style="width:33.33%; aspect-ratio: 1/1; object-fit: cover; margin:5px;" src="/api/artworks/image?small=true&work_id=${artwork.work_id}" alt="${artwork.title}"
 										onclick="window.location.href='/artwork.html?work_id=${artwork.work_id}'">`;
 							}
 						}
@@ -725,7 +725,7 @@
 						${innerHTML}
 						</div>
 							<div style="display: flex; align-items: center;">
-								<img style="width: 30px; height: 30px; border: 1px solid #333; margin-right: 10px; border-radius: 50%;" src="/api/virtual_users/get_avatar?virtual_user_id=${artist.id}&black=true" alt="${artist.name}">
+								<img loading="lazy" style="width: 30px; height: 30px; border: 1px solid #333; margin-right: 10px; border-radius: 50%;" src="/api/virtual_users/get_avatar?virtual_user_id=${artist.id}&black=true" alt="${artist.name}">
 								<h3 class="card-title">${artist.name}</h3>
 							</div>
 						</div>
