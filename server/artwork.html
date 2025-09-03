@@ -11,9 +11,11 @@
 
 <style>
     .artwork_img {
-        width: 100%;
+        max-width: 100%;
         margin-bottom: 10px;
         border-radius: 10px;
+        max-height: calc(clamp(200px, 75vh, 1000px) - 44px);
+        object-fit: contain;
         cursor: pointer;
     }
 </style>
