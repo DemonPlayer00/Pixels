@@ -18,6 +18,18 @@
         object-fit: contain;
         cursor: pointer;
     }
+
+    .artist_info {
+        display: flex;
+        position: sticky;
+        bottom: 10px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 10px;
+    }
+    .artist_info:hover {
+        background-color: #dddddd;
+    }
 </style>
 
 <body>
@@ -29,8 +41,7 @@
         <scan id="title" style="font-size: 24px;">ArtworkName</scan>
         <p></p>
         <scan id="created_at" style="opacity: 0.5; font-size: 14px;">0000-00-00 00:00:00</scan>
-        <div
-            style="display:flex; position: sticky; bottom: 0; background-color: #ffffff; border-radius: 10px; padding: 10px;">
+        <div id="artist_info" class="artist_info card">
             <img id="artist_avatar" src="/src/assets/default-avatar-black.png"
                 style="width: 50px; height: 50px; border-radius: 50%;">
             <p id="artist" style="font-size: 16px; margin-left: 10px;">Artist</p>
@@ -100,6 +111,10 @@
             document.getElementById('artist').textContent = data.artist || "Unknown";
             document.getElementById('description').textContent = data.description || " ";
             document.getElementById('tags').textContent = data.tags;
+
+            document.getElementById('artist_info').addEventListener('click', () => {
+                window.location.href = `/artist.html?virtual_user_id=${data.user_id}`;
+            });
         });
     });
 </script>

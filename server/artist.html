@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Artwork</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/css/framework.css">
+    <link rel="stylesheet" href="/src/css/card.css">
+    <link rel="stylesheet" href="/src/css/stream.css">
+</head>
+<style>
+    .descriptionContainer {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+
+    .descriptionContainer>* {
+        min-height: 1.2rem;
+        /* 改为0才能完全压缩 */
+        overflow: hidden;
+    }
+
+    .descriptionContainer.expanded {
+        grid-template-rows: 1fr;
+    }
+
+    .text-container {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        color: rgba(0, 0, 0, 0.7);
+
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: clip;
+        word-break: break-all;
+    }
+</style>
+
+<body>
+    <div id="artist-card" class="card">
+        <div class="card-body"
+            style="text-align:center;align-items: center;justify-content: center;display: flex;flex-direction: column;">
+            <img id="avatar" style="width:50px; height:50px; border-radius:50%;"
+                src="/src/assets/default-avatar-black.png" alt="Artist">
+            <h2 id="name">Username</h2>
+            <div id="description-container" class="descriptionContainer">
+                <scan id="description" class="text-container">Artist description</scan>
+            </div>
+        </div>
+    </div>
+    <div id="artworks-card" class="card">
+        <div id="artworks-card-body" class="card-body"
+            style="text-align:center;align-items: center;justify-content: center;display: flex;flex-direction: column;">
+            <div id="artworks-container" class="content-streams"></div>
+        </div>
+    </div>
+</body>
+<script>
+    const url = new URL(window.location.href);
+    const searchParams = new URLSearchParams(url.search);
+    const virtual_user_id = searchParams.get("virtual_user_id");
+
+    const descriptionContainer = document.getElementById("description-container");
+    const artistCard = document.getElementById("artist-card");
+    artistCard.addEventListener("click", () => {
+        descriptionContainer.classList.toggle("expanded");
+    });
+    descriptionContainer.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+
+    fetch(`/api/virtual_users/info?virtual_user_id=${virtual_user_id}&full=true`, {
+        method: "GET",
+    }).then((response) => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error("Network response was not ok");
+        }
+    }).then((data) => {
+        const { name, description } = data;
+        const avatarEle = document.getElementById("avatar");
+        const nameEle = document.getElementById("name");
+        const descriptionEle = document.getElementById("description");
+        avatarEle.src = `/api/virtual_users/get_avatar?virtual_user_id=${virtual_user_id}`;
+        nameEle.textContent = name;
+        descriptionEle.textContent = description;
+
+        fetch(`/api/virtual_users/get_artwork_list?virtual_user_id=${virtual_user_id}`, {
+            method: "GET"
+        }).then((response) => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error("Network response was not ok");
+            }
+        }).then((artworks) => {
+            const artworksContainer = document.getElementById("artworks-container");
+            artworksContainer.innerHTML = "";
+            artworks.forEach((artwork) => {
+                const artwork_body = document.createElement("div");
+
+                const artworkImg = document.createElement("img");
+                artworkImg.classList.add("card-img");
+                artworkImg.src = `/api/artworks/image?work_id=${artwork.work_id}&small=true`;
+                artworkImg.addEventListener("click", () => {
+                    window.location.href = `/artwork.html?work_id=${artwork.work_id}`;
+                });
+                const artwork_card = document.createElement("div");
+                artwork_card.classList.add("card");
+                artwork_card.appendChild(artworkImg);
+                artwork_body.appendChild(artworkImg);
+
+                const title = document.createElement("h4");
+                title.textContent = artwork.title;
+                artwork_body.appendChild(title);
+
+                artworksContainer.appendChild(artwork_body);
+            });
+        }).catch((error) => {
+            console.error("Error:", error);
+        });
+    }).catch((error) => {
+        console.error("Error:", error);
+    });
+</script>
+
+</html>

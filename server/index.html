@@ -7,6 +7,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="/src/css/framework.css">
 	<link rel="stylesheet" href="/src/css/card.css">
+	<link rel="stylesheet" href="/src/css/stream.css">
 	<style>
 		/* 导航链接 */
 		.nav-links {
@@ -168,19 +169,6 @@
 			overflow-y: scroll;
 		}
 
-		.content-streams {
-			display: grid;
-			grid-template-columns: repeat(5, 1fr);
-			/* 3列 */
-			gap: 15px;
-			max-width: 2200px;
-		}
-
-		.content-streams .card {
-			border-radius: 8px;
-			padding: 15px;
-		}
-
 		.login_tabs_content {
 			position: fixed;
 			display: flex;
@@ -239,19 +227,6 @@
 
 		.loadPointer {
 			padding-bottom: 16px;
-		}
-
-		/* 响应式设计 */
-		@media (max-width: 1600px) {
-			.content-streams {
-				grid-template-columns: repeat(4, 1fr);
-			}
-		}
-
-		@media (max-width: 1200px) {
-			.content-streams {
-				grid-template-columns: repeat(3, 1fr);
-			}
 		}
 
 		@media (max-width: 800px) {
@@ -316,16 +291,6 @@
 
 			.content-panel {
 				padding: 15px;
-			}
-
-			.content-streams {
-				grid-template-columns: repeat(2, 1fr);
-			}
-		}
-
-		@media (max-width: 480px) {
-			.content-streams {
-				grid-template-columns: repeat(1, 1fr);
 			}
 		}
 	</style>
@@ -724,7 +689,7 @@
 					card.innerHTML = `
 						${innerHTML}
 						</div>
-							<div style="display: flex; align-items: center;" onclick="window.location.href='/artist.html?user_id=${artist.id}'">
+							<div style="display: flex; align-items: center;" onclick="window.location.href='/artist.html?virtual_user_id=${artist.id}'">
 								<img loading="lazy" style="width: 30px; height: 30px; border: 1px solid #333; margin-right: 10px; border-radius: 50%;" src="/api/virtual_users/get_avatar?virtual_user_id=${artist.id}&black=true" alt="${artist.name}">
 								<h3 class="card-title">${artist.name}</h3>
 							</div>
